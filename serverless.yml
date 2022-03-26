@@ -1,0 +1,72 @@
+service: transactions-api
+
+custom:
+  transactionsTableName: 'java-transactions-${self:provider.stage}'
+
+provider:
+  name: aws
+  runtime: java8
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+#  iamRoleStatements:
+#    - Effect: Allow
+#      Action:
+#        - dynamodb:Query
+#        - dynamodb:Scan
+#        - dynamodb:GetItem
+#        - dynamodb:PutItem
+#        - dynamodb:UpdateItem
+#        - dynamodb:DeleteItem
+#      Resource:
+#        - { "Fn::GetAtt": ["TransactionsDynamoDBTable", "Arn" ] }
+
+# todo: configure the lambdas for staging and production envs.
+package:
+  artifact: target/transactions-dev.jar
+
+#package:
+#  artifact: 'target/${self:service}-${self:provider.stage}.jar'
+
+functions:
+  listTransactions:
+    handler: com.aligorkem.example.application.ListTransactionsHandler
+    events:
+      - http:
+          path: /transactions
+          method: get
+  getTransaction:
+    handler: com.aligorkem.example.application.GetTransactionHandler
+    events:
+      - http:
+          path: /transactions/{id}
+          method: get
+  createTransaction:
+    handler: com.aligorkem.example.application.CreateTransactionHandler
+    events:
+      - http:
+          path: /transactions
+          method: post
+
+#resources:
+#  Resources:
+#    TransactionsDynamoDBTable:
+#      Type: AWS::DynamoDB::Table
+#      Properties:
+#        TableName: ${self:custom.transactionsTableName}
+#        AttributeDefinitions:
+#          - AttributeName: id
+#            AttributeType: S
+#          - AttributeName: name
+#            AttributeType: S
+##          - AttributeName: accountNumber
+##            AttributeType: N
+#        KeySchema:
+#          - AttributeName: id
+#            KeyType: HASH
+#          - AttributeName: name
+#            KeyType: RANGE
+##          - AttributeName: accountNumber
+##            KeyType: RANGE
+#        ProvisionedThroughput:
+#          ReadCapacityUnits: 1
+#          WriteCapacityUnits: 1
